@@ -1,7 +1,6 @@
 import scrapy
 
 
-
 def parseWord( word):
     if (word==None):
         return ''
@@ -10,17 +9,16 @@ def parseWord( word):
 
 class BrickSetSpider(scrapy.Spider):
     name = "brickset_spider"
-    # start_urls = ['https://www.ibric.org/biomarket/new_protech/compview.php?iduserid=818918&BackLink=L2Jpb21hcmtldC9uZXdfcHJvdGVjaC9jb21wbGlzdC5waHA/b3J0eT3qsIA=']
-    start_urls = ['https://www.ibric.org/biomarket/new_protech/complist.php?orty=%EA%B0%80']
+    base_url = "https://www.ibric.org/biomarket/new_protech/complist.php?orty="
+    urls = ["가",'나','다', '라','마','바','사','아','자','차', '카','타','파','A']
+    start_urls = []
 
-    
-
+    for l in urls:
+        start_urls.append(base_url + l)
+   
     def parse(self, response):
         PAGES_SELECTOR = '.betaL a::attr(href)'
         pages = response.css(PAGES_SELECTOR).extract()
-        print("###################################")
-        print(pages)
-        print("###################################")
         for next_page in pages:
             yield scrapy.Request(
                 response.urljoin(next_page),
@@ -56,7 +54,8 @@ class BrickSetSpider(scrapy.Spider):
                         right = right.strip() + " " + email.strip()
                     contactInfoSet[parseWord(contactInfo[i])]=parseWord(right)
 
-                yield {
+
+                yield({
                     '회사명': parseWord(name),
                     '홈페이지':homePage,
                     '대표자명':parseWord(brickset.xpath(NAME_REPRESENTATIVE).extract_first()),
@@ -67,15 +66,6 @@ class BrickSetSpider(scrapy.Spider):
                     '주소':parseWord((", ").join(brickset.xpath(Address).extract())),
                     '연락처':contactInfoSet,
                     '소개글': parseWord(("\n ").join(brickset.xpath(소개글).getall())),
-                }
+                })
 
-        # NEXT_PAGE_SELECTOR = '.abase a ::attr(href)'
-        # next_page = response.css(NEXT_PAGE_SELECTOR).extract_first()
-        # print("###################################")
-        # print(next_page)
-        # print("###################################")
-        # if next_page:
-        #     yield scrapy.Request(
-        #         response.urljoin(next_page),
-        #         callback=self.parse
-        #     )
+
